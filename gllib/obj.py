@@ -5,6 +5,12 @@
 # Guatemala 20/07/2020
 # obj.py
 
+import struct
+
+#color function ro return rgb in bytes
+def colorScale(r,g,b):
+    return bytes([round(b*255),round(g*255),round(r*255)])
+    
 # Class to load a obj file
 class Obj(object):
     
@@ -12,7 +18,7 @@ class Obj(object):
    #Initializer, takes as param the filename of obj that is reading
    def __init__(self,filename):
        #Initialize variables needed to store an obj file
-       self.fileLines=[];
+       self.fileLines=[]
        self.vertexIndexes = []
        self.vertexTextureIndexes = []
        self.vertexNormalIndexes = []
@@ -66,3 +72,47 @@ class Obj(object):
                 pass
 
 
+# Class to texture 
+class Texture(object):
+   #Initializer, takes as param the filename of obj that is reading
+    def __init__(self, filename):
+        self.filename = filename
+        self.parseTexture()
+    
+    #We parse our texture coming from a bmp file    
+    def parseTexture(self):
+        #Read in bytes
+        textureFile = open(self.filename, 'rb')
+        textureFile.seek(10)
+        headerSize = struct.unpack('=l', textureFile.read(4))[0]
+
+        textureFile.seek(14 + 4)
+        self.width = struct.unpack('=l', textureFile.read(4))[0]
+        self.height = struct.unpack('=l', textureFile.read(4))[0]
+        textureFile.seek(headerSize)
+
+        self.pixels = []
+
+        for y in range(self.height):
+            self.pixels.append([])
+            for x in range(self.width):
+                b = ord(textureFile.read(1)) / 255
+                g = ord(textureFile.read(1)) / 255
+                r = ord(textureFile.read(1)) / 255
+                self.pixels[y].append(colorScale(r,g,b))
+
+        textureFile.close()
+
+    def getTextureCoordinates(self, tx, ty):
+        #tx and ty coords should be between 0 and 1
+        if tx >= 0 and tx <= 1 and ty >= 0 and ty <= 1:
+            #We transform to absolute texture coords
+            x = int(tx * self.width)
+            y = int(ty * self.height)
+            return self.pixels[y][x]
+        else:
+            #We return black
+            return colorScale(0,0,0)
+
+
+      
