@@ -51,7 +51,19 @@ class Render(object):
         self.currentColor = colorScale(1,1,1) if color==None else color
         self.glClear()
         self.glViewPort(0,0,width-1,height-1)
-  
+        self.light=[0,0,1]
+        self.lightColor=colorScale(0,0,0)
+        self.ambientStrength=0.1
+        self.distance=1
+        self.glAmbientLight()
+        self.activeTexture= None
+        self.activeTexture2= None
+        self.activeShader=None
+    
+    def glAmbientLight(self):
+        b,g,r=self.lightColor
+        self.ambientLight=colorScale(r*self.ambientStrength/255,g*self.ambientStrength/255,b*self.ambientStrength/255)
+    
     #Size of image result
     def glCreateWindow(self,width,height):
         self.width = width
@@ -309,7 +321,7 @@ class Render(object):
         return transformedVertex
             
     #Function to load any obj model
-    def loadObjModel(self,filename,translateX=None,translateY=None,scaleX=None,scaleY=None,isWireframe=False, texture = None):
+    def loadObjModel(self,filename,translateX=None,translateY=None,scaleX=None,scaleY=None,isWireframe=False):
         #Load our objModel so we can draw it in our gl
 
         objModel = Obj(filename)
@@ -362,24 +374,35 @@ class Render(object):
                 vertexTexture1 = (0,0)
                 vertexTexture2 = (0,0)
                 vertexTexture3 = (0,0)
-                if texture:
+                vertexNormal0 = (0,0)
+                vertexNormal1 = (0,0)
+                vertexNormal2 = (0,0)
+                vertexNormal3 = (0,0)
+                if self.activeTexture:
                     vertexTexture0 = objModel.vertexTextureIndexes[face[0][1] - 1 ]
                     vertexTexture1 = objModel.vertexTextureIndexes[face[1][1] - 1 ]
                     vertexTexture2 = objModel.vertexTextureIndexes[face[2][1] - 1 ]
                     if len(face) > 3: 
                         vertexTexture3 = objModel.vertexTextureIndexes[face[3][1] - 1 ]
+                try:
+                    vertexNormal0 = objModel.vertexNormalIndexes[face[0][2] - 1 ]
+                    vertexNormal1 = objModel.vertexNormalIndexes[face[1][2] - 1 ]
+                    vertexNormal2 = objModel.vertexNormalIndexes[face[2][2] - 1 ]
+                    if len(face) > 3: 
+                        vertexNormal3 = objModel.vertexNormalIndexes[face[3][2] - 1 ]
+                except:
+                    noNormalIndexes=True
                 #We calculate the normal by any two vertex
                 #We normalize the normal
                 #We finally calculate intensity by dot product
-                light=[0,0,1]
-                normal =self.mathGl.crossVector(self.mathGl.subtractVector(vertex1,vertex0), self.mathGl.subtractVector(vertex2,vertex0))
-                normal = self.mathGl.normalizeVector(normal)
-                intensity = float(self.mathGl.dotProductVector(normal, light))
+                # light=[0,0,1]
+                # normal =self.mathGl.crossVector(self.mathGl.subtractVector(vertex1,vertex0), self.mathGl.subtractVector(vertex2,vertex0))
+                # normal = self.mathGl.normalizeVector(normal)
+                # intensity = float(self.mathGl.dotProductVector(normal, light))
                 
 
-                #We only paint intensity if is greater than 1 
-                if intensity >=0:
-                    self.glDrawAndPaintTriangleBarCoord((vertex0,vertex1,vertex2), texture=texture,intensity=intensity,vertexTextureList=[vertexTexture0,vertexTexture1,vertexTexture2])
+                
+                self.glDrawAndPaintTriangleBarCoord((vertex0,vertex1,vertex2),vertexTextureList=[vertexTexture0,vertexTexture1,vertexTexture2],vertexNormalList=[vertexNormal0,vertexNormal1,vertexNormal2])
 
                 #We assume it is a rectangular polygon
                 #In this case we already draw the first of the 2 triangles that conform it
@@ -387,9 +410,7 @@ class Render(object):
                 if len(face) > 3: 
                     vertex3 = objModel.vertexIndexes[ face[3][0] - 1 ]
                     vertex3 = self.transform(vertex3,(translateX,translateY,1), (scaleX,scaleY,1))
-                    
-                    if intensity >=0:
-                        self.glDrawAndPaintTriangleBarCoord((vertex0,vertex2,vertex3), texture=texture,intensity=intensity,vertexTextureList=[vertexTexture0,vertexTexture2,vertexTexture3])
+                    self.glDrawAndPaintTriangleBarCoord((vertex0,vertex2,vertex3),vertexTextureList=[vertexTexture0,vertexTexture2,vertexTexture3],vertexNormalList=[vertexNormal0,vertexNormal2,vertexNormal3])
             
       
     #Function to draw any polygon
@@ -585,7 +606,7 @@ class Render(object):
             flatTopTriangle(pointA,pointB,pointD)
 
     #Function to draw and paint any polygon from triangles using barycentric coordinates to check if point is in triangle
-    def glDrawAndPaintTriangleBarCoord(self, vertexList, color = None,vertexTextureList=None,intensity=1,texture=None):
+    def glDrawAndPaintTriangleBarCoord(self, vertexList, color = None,vertexTextureList=None,vertexNormalList=None):
         color=self.currentColor if color == None else color
         pointA,pointB,pointC=vertexList
         #We check for min and max to make a box from which will just verify every point to see if it is in triangle
@@ -604,21 +625,32 @@ class Render(object):
                     try:
                         z = pointA[2] * u + pointB[2] * v + pointC[2] * w
                         if z > self.zbuffer[y][x]:
-                            #We calculate color if using color
-                            b, g , r = color
-                            
+                            if self.activeShader==None:
+                                #We calculate color if using color
+                                b, g , r = color
+                                
 
-                            #We calculate color using texture if texture is available
-                            if texture!=None:
-                                pointATexture, pointBTexture, pointCTexture = vertexTextureList
-                                tx = pointATexture[0] * u + pointBTexture[0] * v + pointCTexture[0] * w
-                                ty = pointATexture[1] * u + pointBTexture[1] * v + pointCTexture[1] * w
-                                
-                                b,g,r= texture.getTextureCoordinates(tx, ty)
-                                
-                            b = b*intensity/255
-                            g = g*intensity/255
-                            r = r*intensity/255
+                                #We calculate color using texture if texture is available
+                                if self.activeTexture!=None:
+                                    pointATexture, pointBTexture, pointCTexture = vertexTextureList
+                                    tx = pointATexture[0] * u + pointBTexture[0] * v + pointCTexture[0] * w
+                                    ty = pointATexture[1] * u + pointBTexture[1] * v + pointCTexture[1] * w
+                                    
+                                    b,g,r= self.activeTexture.getTextureCoordinates(tx, ty)
+                                normal =self.mathGl.crossVector(self.mathGl.subtractVector(pointB,pointA), self.mathGl.subtractVector(pointC,pointA))
+                                normal = self.mathGl.normalizeVector(normal)
+                                intensity = float(self.mathGl.dotProductVector(normal, self.light))
+                                b = b*intensity/255
+                                g = g*intensity/255
+                                r = r*intensity/255
+                            else:
+                               b, g , r = self.activeShader(
+                                   self,
+                                   vertexList=vertexList,
+                                   vertexNormalList=vertexNormalList,
+                                   vertexTextureList=vertexTextureList,
+                                   barCoordinates=[u,v,w],
+                                   color=color) 
                           
 
                             self.glVertexColorAbsolute(x, y, colorScale(r,g,b))

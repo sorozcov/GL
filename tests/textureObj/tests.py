@@ -10,20 +10,20 @@ from gllib.obj import Texture
 
 
 # #We draw our model
-mainGl3=Render(1400,1400)
-text = Texture('./tests/textureObj/earth.bmp')
-mainGl3.loadObjModel('./tests/textureObj/earth.obj',700,700,1,1,texture=text)
-mainGl3.glFinish('./tests/textureObj/graphicearth.bmp')
+# mainGl3=Render(1400,1400)
+# mainGl3.activeTexture = Texture('./tests/textureObj/earth.bmp')
+# mainGl3.loadObjModel('./tests/textureObj/earth.obj',700,700,1,1)
+# mainGl3.glFinish('./tests/textureObj/graphicearth.bmp')
+
+# mainGl3=Render(1400,1400)
+# text = Texture('./tests/textureObj/trex.bmp')
+# mainGl3.loadObjModel('./tests/textureObj/trex.obj',700,200,4,4,texture=text)
+# mainGl3.glFinish('./tests/textureObj/graphic1.bmp')
+
 
 mainGl3=Render(1400,1400)
-text = Texture('./tests/textureObj/trex.bmp')
-mainGl3.loadObjModel('./tests/textureObj/trex.obj',700,200,4,4,texture=text)
-mainGl3.glFinish('./tests/textureObj/graphic1.bmp')
-
-
-mainGl3=Render(1400,1400)
-text = Texture('./tests/textureObj/model.bmp')
-mainGl3.loadObjModel('./tests/textureObj/model.obj',700,700,350,350,texture=text)
+mainGl3.activeTexture = Texture('./tests/textureObj/model.bmp')
+mainGl3.loadObjModel('./tests/textureObj/model.obj',700,700,350,350)
 mainGl3.glFinish('./tests/textureObj/graphicmodel.bmp')
 
 

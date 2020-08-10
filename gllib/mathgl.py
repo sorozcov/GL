@@ -67,7 +67,7 @@ class MathGl(object):
     #Function to do product cross two vectors
     def dotProductVector(self,vectorA,vectorB):
         if(len(vectorA)!=len(vectorB)):
-            return
+            return 0
         vectorDotResult=0
         for i in range(len(vectorA)):
             vectorDotResult=vectorDotResult+vectorA[i]*vectorB[i]

@@ -50,6 +50,8 @@ class Obj(object):
                     for f in splitLine[1].split():
                         if(len(f)!=0):
                             values.append([(int(val) if val!='' else 0) for val in f.split("/")])
+                            
+    
                     
                 #You can also do list(map(float, splitLine[1])) parses completely to float
                 #Now we save them in our object properties
