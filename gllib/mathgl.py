@@ -5,6 +5,7 @@
 # Guatemala 30/07/2020
 #  mathgl.py
 
+from math import pi,cos,sin
 #class MathGl for mathematical operations needed for gl
 class MathGl(object):
     #Function to calculate a triangle barycentric coordinates of a point 
@@ -80,7 +81,8 @@ class MathGl(object):
         if(str(type(matrixA[0]))!="<class 'list'>"):
             matrixA=[matrixA]
         if(str(type(matrixB[0]))!="<class 'list'>"):
-            matrixB=[matrixB]
+            for j in range(len(matrixB)):
+                matrixB[j]=[matrixB[j]]
         
         #We check that matrix multiplication is possible, else we return false
         if(len(matrixA[0])!=len(matrixB)):
@@ -105,4 +107,19 @@ class MathGl(object):
         #If result is a vector, based on returnVector or return as matrix
         if(len(matrixResult)==1 and returnVector):
             return matrixResult[0]
+        elif(len(matrixResult[0])==1 and returnVector):
+            vectorResult=[]
+            for k in range(len(matrixResult)):
+                    vectorResult.append(matrixResult[k][0])
+            return vectorResult
         return matrixResult
+    
+    #From degreesToRadians
+    def degreesToRadians(self,deg):
+        return deg*2*pi/360
+    #cos
+    def cos(self,rad):
+        return cos(rad)
+    #sin
+    def sin(self,rad):
+        return sin(rad)

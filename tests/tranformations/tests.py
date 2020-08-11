@@ -72,3 +72,8 @@ from gllib.shaders import gouradShader,toonShader,halfhalfShader,predominantColo
 # mainGl3.glFinish('./tests/shaders/graphicmodel.bmp')
 
 
+mainGl3 = Render(500,500)
+mainGl3.activeTexture = Texture('./models/textures/model.bmp')
+mainGl3.activeShader = gouradShader
+mainGl3.loadObjModel('./models/obj/model.obj', translate=(250,250,250), scale=(200,200,200), rotation=(0,90,0))
+mainGl3.glFinish('./tests/tranformations/graphicmodel.bmp')
