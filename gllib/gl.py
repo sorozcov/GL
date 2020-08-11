@@ -321,7 +321,7 @@ class Render(object):
         return transformedVertex
             
     #Function to load any obj model
-    def loadObjModel(self,filename,translateX=None,translateY=None,scaleX=None,scaleY=None,isWireframe=False):
+    def loadObjModel(self,filename,translateX=None,translateY=None,scaleX=None,scaleY=None,translateZ=1,scaleZ=1,isWireframe=False):
         #Load our objModel so we can draw it in our gl
 
         objModel = Obj(filename)
@@ -366,18 +366,18 @@ class Render(object):
                 vertex0 = objModel.vertexIndexes[face[0][0] - 1 ]
                 vertex1 = objModel.vertexIndexes[face[1][0] - 1 ]
                 vertex2 = objModel.vertexIndexes[face[2][0] - 1 ]
-                vertex0 = self.transform(vertex0,(translateX,translateY,1), (scaleX,scaleY,1))
-                vertex1 = self.transform(vertex1,(translateX,translateY,1), (scaleX,scaleY,1))
-                vertex2 = self.transform(vertex2,(translateX,translateY,1), (scaleX,scaleY,1))
+                vertex0 = self.transform(vertex0,(translateX,translateY,translateZ), (scaleX,scaleY,scaleZ))
+                vertex1 = self.transform(vertex1,(translateX,translateY,translateZ), (scaleX,scaleY,scaleZ))
+                vertex2 = self.transform(vertex2,(translateX,translateY,translateZ), (scaleX,scaleY,scaleZ))
                 #We check if it has a texture
-                vertexTexture0 = (0,0)
-                vertexTexture1 = (0,0)
-                vertexTexture2 = (0,0)
-                vertexTexture3 = (0,0)
-                vertexNormal0 = (0,0)
-                vertexNormal1 = (0,0)
-                vertexNormal2 = (0,0)
-                vertexNormal3 = (0,0)
+                vertexTexture0 = (0,0,0)
+                vertexTexture1 = (0,0,0)
+                vertexTexture2 = (0,0,0)
+                vertexTexture3 = (0,0,0)
+                vertexNormal0 = (0,0,0)
+                vertexNormal1 = (0,0,0)
+                vertexNormal2 = (0,0,0)
+                vertexNormal3 = (0,0,0)
                 if self.activeTexture:
                     vertexTexture0 = objModel.vertexTextureIndexes[face[0][1] - 1 ]
                     vertexTexture1 = objModel.vertexTextureIndexes[face[1][1] - 1 ]
@@ -646,7 +646,7 @@ class Render(object):
                             else:
                                b, g , r = self.activeShader(
                                    self,
-                                   vertexList=vertexList,
+                                   vertexList=(pointA,pointB,pointC),
                                    vertexNormalList=vertexNormalList,
                                    vertexTextureList=vertexTextureList,
                                    barCoordinates=[u,v,w],
