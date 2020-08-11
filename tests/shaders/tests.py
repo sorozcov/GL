@@ -65,14 +65,54 @@ from gllib.shaders import gouradShader,toonShader,halfhalfShader,predominantColo
 # mainGl3.loadObjModel('./models/obj/apple.obj',700,700,7,7)
 # mainGl3.glFinish('./tests/shaders/myshaderappleinverse.bmp')
 
-mainGl3=Render(1000,1000)
-mainGl3.activeShader = predominantColorShader
-mainGl3.activeTexture = Texture('./models/textures/model.bmp')
-mainGl3.loadObjModel('./models/obj/model.obj',500,400,300,300,400,300)
-mainGl3.glFinish('./tests/shaders/graphicmodelpredominant.bmp')
+# mainGl3=Render(1000,1000)
+# mainGl3.activeShader = gouradShader
+# mainGl3.activeTexture = Texture('./models/textures/model.bmp')
+# mainGl3.loadObjModel('./models/obj/model.obj',500,400,300,300,400,300)
+# mainGl3.glFinish('./tests/shaders/graphicmodel.bmp')
 
-# mainGl3=Render(1400,1400)
-# mainGl3.activeShader = predominantColorShader
-# mainGl3.activeTexture = Texture('./models/textures/trex.bmp')
-# mainGl3.loadObjModel('./models/obj/trex.obj',700,200,4,4,200,4)
-# mainGl3.glFinish('./tests/shaders/graphictrexgrayscale.bmp')
+
+def dotProductVector(vectorA,vectorB):
+    if(len(vectorA)!=len(vectorB)):
+        return 0
+    vectorDotResult=0
+    for i in range(len(vectorA)):
+        vectorDotResult=vectorDotResult+vectorA[i]*vectorB[i]
+    return vectorDotResult
+
+def multiplyMatrix(matrixA,matrixB,returnVector=True,returnDotProduct=True):
+
+    if(str(type(matrixA[0]))!="<class 'list'>"):
+        matrixA=[matrixA]
+    if(str(type(matrixB[0]))!="<class 'list'>"):
+        matrixB=[matrixB]
+        
+    if(len(matrixA[0])!=len(matrixB)):
+        #Unable to do matrix multiplication
+        return False
+    if(len(matrixA)==1 and len(matrixB[0])==1 and returnDotProduct):
+        vectorB=[]
+        for k in range(len(matrixB)):
+            vectorB.append(matrixB[k][0])
+        return(dotProductVector(matrixA[0],vectorB))
+
+    matrixResult=[[0 for x in range(len(matrixB[0]))] for y in range(len(matrixA))]
+    for i in range(len(matrixA)):
+        for j in range(len(matrixB[0])):
+            vectorB=[]
+            for k in range(len(matrixB)):
+                vectorB.append(matrixB[k][j])
+            matrixResult[i][j]=dotProductVector(matrixA[i],vectorB)
+    if(len(matrixResult)==1 and returnVector):
+        return matrixResult[0]
+    return matrixResult
+
+A=[[1,2,3],[4,5,6]]
+B=[[7,8],[9,10],[11,12]]
+L=[[1],[2],[3]]
+J=[[2,4],[3,5],[5,6]]
+K=[1,2,3]
+M=[[2,8,8],[3,6,7],[5,6,7]]
+# print(multiplyMatrix(A,B))
+
+print(multiplyMatrix(A,B))

@@ -72,3 +72,37 @@ class MathGl(object):
         for i in range(len(vectorA)):
             vectorDotResult=vectorDotResult+vectorA[i]*vectorB[i]
         return vectorDotResult
+
+    #Function to multiply matrix and vectors with matrix
+    def multiplyMatrix(self,matrixA,matrixB,returnVector=True,returnDotProduct=True):
+
+        #We check if we are multiplying vectors
+        if(str(type(matrixA[0]))!="<class 'list'>"):
+            matrixA=[matrixA]
+        if(str(type(matrixB[0]))!="<class 'list'>"):
+            matrixB=[matrixB]
+        
+        #We check that matrix multiplication is possible, else we return false
+        if(len(matrixA[0])!=len(matrixB)):
+            #Unable to do matrix multiplication
+            return False
+
+        #We check if both are vectors and if we wants dotProduct Return
+        if(len(matrixA)==1 and len(matrixB[0])==1 and returnDotProduct):
+            vectorB=[]
+            for k in range(len(matrixB)):
+                vectorB.append(matrixB[k][0])
+            return(self.dotProductVector(matrixA[0],vectorB))
+
+        #We start to multiply the matrix and return result
+        matrixResult=[[0 for x in range(len(matrixB[0]))] for y in range(len(matrixA))]
+        for i in range(len(matrixA)):
+            for j in range(len(matrixB[0])):
+                vectorB=[]
+                for k in range(len(matrixB)):
+                    vectorB.append(matrixB[k][j])
+                matrixResult[i][j]=self.dotProductVector(matrixA[i],vectorB)
+        #If result is a vector, based on returnVector or return as matrix
+        if(len(matrixResult)==1 and returnVector):
+            return matrixResult[0]
+        return matrixResult
