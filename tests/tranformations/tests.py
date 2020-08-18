@@ -72,8 +72,20 @@ from gllib.shaders import gouradShader,toonShader,halfhalfShader,predominantColo
 # mainGl3.glFinish('./tests/shaders/graphicmodel.bmp')
 
 
-mainGl3 = Render(500,500)
-mainGl3.activeTexture = Texture('./models/textures/model.bmp')
+mainGl3 = Render(1500,1500)
+# mainGl3.activeTexture = Texture('./models/textures/model.bmp')
+# mainGl3.activeShader = gouradShader
+# mainGl3.loadObjModel('./models/obj/model.obj', translate=(250,250,250), scale=(200,200,200), rotation=(0,90,0))
+
+
+
+# mainGl3.activeTexture = Texture('./models/textures/earthDay.bmp')
+# mainGl3.activeTexture2 = Texture('./models/textures/earthNight.bmp')
+# mainGl3.activeShader = halfhalfShader
+# mainGl3.loadObjModel('./models/obj/earth.obj',translate=(700,700,700),scale=(1,1,1))
+# mainGl3.glFinish('./tests/shaders/project.bmp')
+
+mainGl3.activeTexture = Texture('./models/textures/ufo.bmp')
 mainGl3.activeShader = gouradShader
-mainGl3.loadObjModel('./models/obj/model.obj', translate=(250,250,250), scale=(200,200,200), rotation=(0,90,0))
-mainGl3.glFinish('./tests/tranformations/graphicmodel.bmp')
+mainGl3.loadObjModel('./models/obj/ufo.obj',translate=(700,700,0),scale=(1,1,1))
+mainGl3.glFinish('./tests/shaders/project.bmp')
