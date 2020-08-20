@@ -12,7 +12,8 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 #We import our object class to gl.py
 from gllib.obj import Obj
 from gllib.mathgl import MathGl
-from math import pi,cos,sin
+from math import pi,cos,sin,tan
+import numpy as np
 
 
 #char 1 byte
@@ -60,6 +61,8 @@ class Render(object):
         self.activeTexture= None
         self.activeTexture2= None
         self.activeShader=None
+        self.createViewMatrix()
+        self.createProjectionMatrix()
     
     def glAmbientLight(self):
         b,g,r=self.lightColor
@@ -70,7 +73,7 @@ class Render(object):
         self.width = width
         self.height = height
     
-    #Change Viewport position
+    #Change Viewport position and matrix
     def glViewPort(self,x, y, width, height):
         if(x>=self.width or y>=self.height):
             return False
@@ -81,8 +84,52 @@ class Render(object):
         self.viewPortHeight = height
         self.viewPortX = x
         self.viewPortY = y
+        #Viewport matrix
+        self.viewPortMatrix = [[width/2, 0, 0, x + width/2],
+                                      [0, height/2, 0, y + height/2],
+                                      [0, 0, 0.5, 0.5],
+                                      [0, 0, 0, 1]]
         return True
 
+    #Function to create viewMatrix
+    def createViewMatrix(self, camPosition = (0,0,0), camRotation = (0,0,0)):
+        camMatrix = self.createModelMatrix( translate = camPosition, rotation = camRotation)
+        # self.viewMatrix = np.linalg.inv(camMatrix)
+        self.viewMatrix = self.mathGl.invMatrix(camMatrix)
+
+    #Function createViewMatrix using an eye to watch(point) and the cam position
+    def lookAtMatrix(self, eye, camPosition = (0,0,0)):
+
+        forward = self.mathGl.subtractVector(camPosition, eye)
+        forward = self.mathGl.normalizeVector(forward)
+
+        right = self.mathGl.crossVector([0,1,0], forward)
+        right = self.mathGl.crossVector([0,1,0], forward)
+        right=self.mathGl.normalizeVector(right)
+
+        up = self.mathGl.crossVector(forward, right)
+        up=self.mathGl.normalizeVector(up)
+
+        camMatrix = [[right[0], up[0], forward[0], camPosition[0]],
+                    [right[1], up[1], forward[1], camPosition[1]],
+                    [right[2], up[2], forward[2], camPosition[2]],
+                    [0,0,0,1]]
+
+        # self.viewMatrix = np.linalg.inv(camMatrix)
+        self.viewMatrix = self.mathGl.invMatrix(camMatrix)
+
+    #Function to create projection matrix   
+    def createProjectionMatrix(self, n = 0.1, f = 1000, fov = 60,degrees=True):
+        fov=self.mathGl.degreesToRadians(fov) if degrees else fov
+
+        t = tan((fov) / 2) * n
+        r = t * self.viewPortWidth / self.viewPortHeight
+
+        self.projectionMatrix = [[n / r, 0, 0, 0],
+                                        [0, n / t, 0, 0],
+                                        [0, 0, -(f+n)/(f-n), -(2*f*n)/(f-n)],
+                                        [0, 0, -1, 0]]
+    
     #Clear to set bitmap of one color default black
     def glClear(self):
         #Set to black 
@@ -102,7 +149,7 @@ class Render(object):
         self.pixels= [[self.backgroundColor for x in range(self.width)] for y in range(self.height)]
 
         #Zbuffer depth z
-        self.zbuffer = [ [ -float('inf') for x in range(self.width)] for y in range(self.height) ]
+        self.zbuffer = [ [ float('inf') for x in range(self.width)] for y in range(self.height) ]
 
     #Functions to create points as absolute position
     def glVertexRGBAbsolute(self,x,y,r,g,b):
@@ -316,12 +363,32 @@ class Render(object):
                     x=m*y+b
                     self.glVertexColorAbsolute(round(x),round(y))
                     
- 
+
+    #Function to transform object
+    def transformNormal(self, vertex, vMatrix):
+        #vMatrix based on object translation,rotation and scale
+        #vertex and vertexMatrix of point in 4D
+        #To transofrm correctly viewPortMatrix * projectionMatrix * viewMatrix* vMatrix*vertexMatrix
+        vertexMatrix = [vertex[0], vertex[1], vertex[2], 1]
+        #transVertex = self.mathGl.multiplyMatrix(self.mathGl.multiplyMatrix(self.mathGl.multiplyMatrix(self.mathGl.multiplyMatrix(self.viewPortMatrix,self.projectionMatrix),self.viewMatrix),vMatrix),vertexMatrix)
+        transVertex =self.mathGl.multiplyMatrix(vMatrix,vertexMatrix)
+        #transVertex = self.mathGl.multiplyMatrixes([self.viewPortMatrix,self.projectionMatrix,self.viewMatrix,vMatrix,vertexMatrix])
+
+        transVertex = [transVertex[0] / transVertex[3],
+                        transVertex[1] / transVertex[3],
+                        transVertex[2] / transVertex[3]]
+
+        return transVertex
+
     #Function to transform object
     def transform(self, vertex, vMatrix):
-        
+        #vMatrix based on object translation,rotation and scale
+        #vertex and vertexMatrix of point in 4D
+        #To transofrm correctly viewPortMatrix * projectionMatrix * viewMatrix* vMatrix*vertexMatrix
         vertexMatrix = [vertex[0], vertex[1], vertex[2], 1]
-        transVertex = self.mathGl.multiplyMatrix(vMatrix,vertexMatrix)
+        #transVertex = self.mathGl.multiplyMatrix(self.mathGl.multiplyMatrix(self.mathGl.multiplyMatrix(self.mathGl.multiplyMatrix(self.viewPortMatrix,self.projectionMatrix),self.viewMatrix),vMatrix),vertexMatrix)
+        #transVertex =self.mathGl.multiplyMatrix(vMatrix,vertexMatrix)
+        transVertex = self.mathGl.multiplyMatrixes([self.viewPortMatrix,self.projectionMatrix,self.viewMatrix,vMatrix,vertexMatrix])
 
         transVertex = [transVertex[0] / transVertex[3],
                         transVertex[1] / transVertex[3],
@@ -367,7 +434,6 @@ class Render(object):
                             [sin(roll), cos(roll), 0, 0],
                             [0, 0, 1, 0],
                             [0, 0, 0, 1]]
-        m=self.mathGl.multiplyMatrix(self.mathGl.multiplyMatrix(rotationX,rotationY),rotationZ)  
         return self.mathGl.multiplyMatrix(self.mathGl.multiplyMatrix(rotationX,rotationY),rotationZ)      
     #Function to load any obj model
     def loadObjModel(self,filename,translate=(0,0,0),scale=(1,1,1),rotation=(0,0,0),isWireframe=False):
@@ -432,10 +498,10 @@ class Render(object):
                     vertexNormal2 = objModel.vertexNormalIndexes[face[2][2] - 1 ]
                     if len(face) > 3: 
                         vertexNormal3 = objModel.vertexNormalIndexes[face[3][2] - 1 ]
-                    vertexNormal0 = self.transform(vertexNormal0,rotationMatrix)
-                    vertexNormal1 = self.transform(vertexNormal1,rotationMatrix)
-                    vertexNormal2 = self.transform(vertexNormal2,rotationMatrix)
-                    vertexNormal3 = self.transform(vertexNormal3,rotationMatrix)
+                    vertexNormal0 = self.transformNormal(vertexNormal0,rotationMatrix)
+                    vertexNormal1 = self.transformNormal(vertexNormal1,rotationMatrix)
+                    vertexNormal2 = self.transformNormal(vertexNormal2,rotationMatrix)
+                    vertexNormal3 = self.transformNormal(vertexNormal3,rotationMatrix)
                 except:
                     noNormalIndexes=True
                 
@@ -662,7 +728,7 @@ class Render(object):
                     #We are only going to paint if the depth right now is less than the new depth as that will show it is in front
                     try:
                         z = pointA[2] * u + pointB[2] * v + pointC[2] * w
-                        if z > self.zbuffer[y][x]:
+                        if z < self.zbuffer[y][x] and z <= 1 and z >= -1 :
                             if self.activeShader==None:
                                 #We calculate color if using color
                                 b, g , r = color
