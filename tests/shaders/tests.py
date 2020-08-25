@@ -65,14 +65,10 @@ from gllib.shaders import gouradShader,toonShader,halfhalfShader,predominantColo
 # mainGl3.loadObjModel('./models/obj/apple.obj',700,700,7,7)
 # mainGl3.glFinish('./tests/shaders/myshaderappleinverse.bmp')
 
-mainGl3=Render(1000,1000)
-mainGl3.activeShader = predominantColorShader
-mainGl3.activeTexture = Texture('./models/textures/model.bmp')
-mainGl3.loadObjModel('./models/obj/model.obj',500,400,300,300,400,300)
-mainGl3.glFinish('./tests/shaders/graphicmodelpredominant.bmp')
+# mainGl3=Render(1000,1000)
+# mainGl3.activeShader = gouradShader
+# mainGl3.activeTexture = Texture('./models/textures/model.bmp')
+# mainGl3.loadObjModel('./models/obj/model.obj',500,400,300,300,400,300)
+# mainGl3.glFinish('./tests/shaders/graphicmodel.bmp')
 
-# mainGl3=Render(1400,1400)
-# mainGl3.activeShader = predominantColorShader
-# mainGl3.activeTexture = Texture('./models/textures/trex.bmp')
-# mainGl3.loadObjModel('./models/obj/trex.obj',700,200,4,4,200,4)
-# mainGl3.glFinish('./tests/shaders/graphictrexgrayscale.bmp')
+
