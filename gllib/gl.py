@@ -443,6 +443,7 @@ class Render(object):
         modelMatrix = self.createModelMatrix(translate, scale, rotation)
         rotationMatrix = self.createRotationMatrix(rotation)
         #For each face that has reference to v,vn,vt
+        index = 0   
         for face in objModel.faces:
         
             #if we dont want the painted model,just the wireframe
@@ -474,6 +475,8 @@ class Render(object):
                 vertex0 = self.transform(vertex0,modelMatrix)
                 vertex1 = self.transform(vertex1,modelMatrix)
                 vertex2 = self.transform(vertex2,modelMatrix)
+                print(str(index) + "/" + str(len(objModel.faces)))
+                index=index+1
                 if len(face) > 3: 
                     vertex3 = objModel.vertexIndexes[ face[3][0] - 1 ]
                     vertex3 = self.transform(vertex3,modelMatrix)
