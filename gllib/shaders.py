@@ -40,6 +40,43 @@ def gouradShader(render,**kwargs):
         #Return black
         return 0,0,0
 
+def tvShader(render,**kwargs):
+    #We obtain our barycentric coordinates
+    u,v,w=kwargs['barCoordinates']
+    ta,tb,tc=kwargs['vertexTextureList']
+    na,nb,nc=kwargs['vertexNormalList']
+    b,g,r=kwargs['color']
+    
+    if render.activeTexture:
+        tx = ta[0] * u + tb[0] * v + tc[0] * w
+        ty = ta[1] * u + tb[1] * v + tc[1] * w
+        if(tx>=990/2048 and tx<= 1560/2048 and ty>=40/2048 and ty<=516/2048):
+            txTV=(tx-990/2048)/((1560-990)/2048)
+            tyTV=(ty-40/2048)/((516-40)/2048)
+            b,g,r = render.activeTexture2.getTextureCoordinates(txTV,tyTV)
+        else:                        
+            b,g,r= render.activeTexture.getTextureCoordinates(tx, ty)
+    nx = na[0] * u + nb[0] * v + nc[0] * w
+    ny = na[1] * u + nb[1] * v + nc[1] * w
+    try:
+        nz = na[2] * u + nb[2] * v + nc[2] * w
+    except:
+        nz=0
+    #We create out normal for each point
+    normal=[nx,ny,nz]
+  
+    intensity = float(render.mathGl.dotProductVector(normal, render.light))
+    #We calculate the color for each pixel with its normal vector and light  
+    b = b*intensity/255
+    g = g*intensity/255
+    r = r*intensity/255
+    if intensity>0:
+        #Return bgr
+        return b,g,r
+    else:
+        #Return black
+        return 0,0,0
+
 #Toon Shader
 #https://en.wikipedia.org/wiki/Gouraud_shading
 def toonShader(render,**kwargs):
