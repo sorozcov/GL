@@ -463,6 +463,7 @@ class Render(object):
         rotationMatrix = self.createRotationMatrix(rotation)
         #For each face that has reference to v,vn,vt
         indexFace = 1   
+        objName=filename.split("/").pop()
         for face in objModel.faces:
         
             #if we dont want the painted model,just the wireframe
@@ -495,7 +496,8 @@ class Render(object):
                 vertex1 = self.transform(vertex1,modelMatrix)
                 vertex2 = self.transform(vertex2,modelMatrix)
                 #Printing each face progress for debugging and time testing
-                print(str(indexFace) + "/" + str(len(objModel.faces)))
+                
+                print(str(objName)str(indexFace) + "/" + str(len(objModel.faces)))
                 indexFace=indexFace+1
                 if len(face) > 3: 
                     vertex3 = objModel.vertexIndexes[ face[3][0] - 1 ]
