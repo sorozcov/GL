@@ -5,7 +5,7 @@
 # Guatemala 09/08/2020
 # shaders.py
 
-
+import random
 #Gourad Shader
 #https://en.wikipedia.org/wiki/Gouraud_shading
 def gouradShader(render,**kwargs):
@@ -269,15 +269,74 @@ def inverseShading(render,**kwargs):
     # MD would be the percentage of x light this material will reflect.
     # LD be the percentage of x light the light source emits.
     intensity=1-intensity
-    # if b>g and b>r:
-    #     g=b
-    #     r=b
-    # elif r>g and r>b:
-    #     b=r
-    #     g=r
-    # elif g>b and g>r:
-    #     b=g
-    #     r=g
+
+    
+    b = (b/255)*intensity
+    g = (g/255)*intensity
+    r = (r/255)*intensity
+    
+    if intensity>0:
+        #Return bgr
+        return b,g,r
+    else:
+        #Return white
+        return 0,0,0
+
+
+#Random color shader
+def randomColorShader(render,**kwargs):
+    #We obtain our barycentric coordinates
+    u,v,w=kwargs['barCoordinates']
+    ta,tb,tc=kwargs['vertexTextureList']
+    na,nb,nc=kwargs['vertexNormalList']
+    b,g,r=kwargs['color']
+    
+    if render.activeTexture:
+        tx = ta[0] * u + tb[0] * v + tc[0] * w
+        ty = ta[1] * u + tb[1] * v + tc[1] * w                            
+        b,g,r= render.activeTexture.getTextureCoordinates(tx, ty)
+    nx = na[0] * u + nb[0] * v + nc[0] * w
+    ny = na[1] * u + nb[1] * v + nc[1] * w
+    try:
+        nz = na[2] * u + nb[2] * v + nc[2] * w
+    except:
+        nz=0
+    #We create out normal for each point
+    normal=[nx,ny,nz]
+  
+    intensity = float(render.mathGl.dotProductVector(normal, render.light))
+    #We calculate the color for each pixel with its normal vector and light  
+
+    # MD would be the percentage of x light this material will reflect.
+    # LD be the percentage of x light the light source emits.
+    randomNumber = random.randint(0,100)
+    if(randomNumber>0 and randomNumber<25):
+        b=random.randint(0,255)
+        g=random.randint(0,255)
+        r=random.randint(0,255)
+    elif(randomNumber>=25 and randomNumber<50):
+        b=random.randint(0,255)
+    elif(randomNumber>=50 and randomNumber<75):
+        g=random.randint(0,255)
+    elif(randomNumber>=75 and randomNumber<101):
+        r=random.randint(0,255)
+    if(intensity<0):
+        #Neon Color
+        randomNumber = random.randint(0,100)
+        if(randomNumber>0 and randomNumber<33):
+            g=random.randint(0,255)
+            r=random.randint(0,255)
+        elif(randomNumber>=33 and randomNumber<67):
+            b=random.randint(0,255)
+            r=random.randint(0,255)
+        elif(randomNumber>=67 and randomNumber<101):
+            b=random.randint(0,255)
+            g=random.randint(0,255)
+        #Intensity change
+        intensity=0.5
+    #We transform intensity to 0.5 to 1
+    intensity = (intensity+1)/2
+
     
     b = (b/255)*intensity
     g = (g/255)*intensity
