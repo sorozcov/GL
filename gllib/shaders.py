@@ -42,14 +42,15 @@ def gouradShader(render,**kwargs):
 
 def tvShader(render,**kwargs):
     #We obtain our barycentric coordinates
+    vertexA,vertexB,vertexC=kwargs['vertexList']
     u,v,w=kwargs['barCoordinates']
     ta,tb,tc=kwargs['vertexTextureList']
     na,nb,nc=kwargs['vertexNormalList']
     b,g,r=kwargs['color']
-    
+    tx = ta[0] * u + tb[0] * v + tc[0] * w
+    ty = ta[1] * u + tb[1] * v + tc[1] * w
     if render.activeTexture:
-        tx = ta[0] * u + tb[0] * v + tc[0] * w
-        ty = ta[1] * u + tb[1] * v + tc[1] * w
+        
         if(tx>=990/2048 and tx<= 1560/2048 and ty>=40/2048 and ty<=516/2048):
             txTV=(tx-990/2048)/((1560-990)/2048)
             tyTV=(ty-40/2048)/((516-40)/2048)
@@ -64,8 +65,44 @@ def tvShader(render,**kwargs):
         nz=0
     #We create out normal for each point
     normal=[nx,ny,nz]
-  
-    intensity = float(render.mathGl.dotProductVector(normal, render.light))
+    if render.activeNormalMap:
+        bNM,gNM,rNM= render.activeNormalMap.getTextureCoordinates(tx, ty)
+        #We convert rgb color to arange in -1 and 1
+        normalMap = [(rNM/255)*2-1,(gNM/255)*2-1,(bNM/255)*2-1]
+        normalMap = render.mathGl.normalizeVector(normalMap)
+        #We need to get the tangent and bitangent to transform the normal map texture to Tangent Space
+        #https://learnopengl.com/Advanced-Lighting/Normal-Mapping
+        edge1= render.mathGl.subtractVector(vertexB,vertexA)
+        edge2= render.mathGl.subtractVector(vertexC,vertexA)
+        deltaUV1 = render.mathGl.subtractVector(tb, ta)
+        deltaUV2 = render.mathGl.subtractVector(tc, ta)
+        tangent = [0,0,0]
+        f = 1 / (deltaUV1[0] * deltaUV2[1] - deltaUV2[0] * deltaUV1[1])
+        tangent[0] = f * (deltaUV2[1] * edge1[0] - deltaUV1[1] * edge2[0])
+        tangent[1] = f * (deltaUV2[1] * edge1[1] - deltaUV1[1] * edge2[1])
+        tangent[2] = f * (deltaUV2[1] * edge1[2] - deltaUV1[1] * edge2[2])
+        tangent = render.mathGl.normalizeVector(tangent)
+
+        tangent = render.mathGl.subtractVector(tangent, render.mathGl.scalarMultiplicationVector(normal,render.mathGl.dotProductVector(tangent, normal)))
+        #tangent = np.subtract(tangent, np.multiply(np.dot(tangent, normal),normal))
+        tangent = render.mathGl.normalizeVector(tangent)
+
+        bitangent = render.mathGl.crossVector(normal, tangent)
+        bitangent = render.mathGl.normalizeVector(bitangent)
+
+        #Now we calculate tangent matrix
+        tangentMatrix = [[tangent[0],bitangent[0],normal[0]],
+                                [tangent[1],bitangent[1],normal[1]],
+                                [tangent[2],bitangent[2],normal[2]]]
+
+        light = render.light
+        light = render.mathGl.multiplyMatrix(tangentMatrix,light)
+        light = render.mathGl.normalizeVector(light)
+    
+        #We calculate intensity with normalMap and newLight
+        intensity = render.mathGl.dotProductVector(normalMap, light)
+    else:
+        intensity = float(render.mathGl.dotProductVector(normal, render.light))
     #We calculate the color for each pixel with its normal vector and light  
     b = b*intensity/255
     g = g*intensity/255
@@ -253,6 +290,77 @@ def inverseShading(render,**kwargs):
         #Return white
         return 0,0,0
 
+
+#Normal Map
+#https://learnopengl.com/Advanced-Lighting/Normal-Mapping
+#And from example seen in class
+def normalMapTexture(render,**kwargs):
+    #We obtain our barycentric coordinates
+    u,v,w=kwargs['barCoordinates']
+    ta,tb,tc=kwargs['vertexTextureList']
+    na,nb,nc=kwargs['vertexNormalList']
+    vertexA,vertexB,vertexC=kwargs['vertexList']
+    b,g,r=kwargs['color']
+    tx = ta[0] * u + tb[0] * v + tc[0] * w
+    ty = ta[1] * u + tb[1] * v + tc[1] * w    
+    if render.activeTexture:                            
+        b,g,r= render.activeTexture.getTextureCoordinates(tx, ty)
+    nx = na[0] * u + nb[0] * v + nc[0] * w
+    ny = na[1] * u + nb[1] * v + nc[1] * w
+    try:
+        nz = na[2] * u + nb[2] * v + nc[2] * w
+    except:
+        nz=0
+    #We create out normal for each point
+    normal=[nx,ny,nz]
+    if render.activeNormalMap:
+        bNM,gNM,rNM= render.activeNormalMap.getTextureCoordinates(tx, ty)
+        #We convert rgb color to arange in -1 and 1
+        normalMap = [(rNM/255)*2-1,(gNM/255)*2-1,(bNM/255)*2-1]
+        normalMap = render.mathGl.normalizeVector(normalMap)
+        #We need to get the tangent and bitangent to transform the normal map texture to Tangent Space
+        #https://learnopengl.com/Advanced-Lighting/Normal-Mapping
+        edge1= render.mathGl.subtractVector(vertexB,vertexA)
+        edge2= render.mathGl.subtractVector(vertexC,vertexA)
+        deltaUV1 = render.mathGl.subtractVector(tb, ta)
+        deltaUV2 = render.mathGl.subtractVector(tc, ta)
+        tangent = [0,0,0]
+        f = 1 / (deltaUV1[0] * deltaUV2[1] - deltaUV2[0] * deltaUV1[1])
+        tangent[0] = f * (deltaUV2[1] * edge1[0] - deltaUV1[1] * edge2[0])
+        tangent[1] = f * (deltaUV2[1] * edge1[1] - deltaUV1[1] * edge2[1])
+        tangent[2] = f * (deltaUV2[1] * edge1[2] - deltaUV1[1] * edge2[2])
+        tangent = render.mathGl.normalizeVector(tangent)
+
+        tangent = render.mathGl.subtractVector(tangent, render.mathGl.scalarMultiplicationVector(normal,render.mathGl.dotProductVector(tangent, normal)))
+        #tangent = np.subtract(tangent, np.multiply(np.dot(tangent, normal),normal))
+        tangent = render.mathGl.normalizeVector(tangent)
+
+        bitangent = render.mathGl.crossVector(normal, tangent)
+        bitangent = render.mathGl.normalizeVector(bitangent)
+
+        #Now we calculate tangent matrix
+        tangentMatrix = [[tangent[0],bitangent[0],normal[0]],
+                                [tangent[1],bitangent[1],normal[1]],
+                                [tangent[2],bitangent[2],normal[2]]]
+
+        light = render.light
+        light = render.mathGl.multiplyMatrix(tangentMatrix,light)
+        light = render.mathGl.normalizeVector(light)
+    
+        #We calculate intensity with normalMap and newLight
+        intensity = render.mathGl.dotProductVector(normalMap, light)
+    else:
+        intensity = float(render.mathGl.dotProductVector(normal, render.light))
+    #We calculate the color for each pixel with its normal vector and light  
+    b = b*intensity/255
+    g = g*intensity/255
+    r = r*intensity/255
+    if intensity>0:
+        #Return bgr
+        return b,g,r
+    else:
+        #Return black
+        return 0,0,0
 #color function ro return rgb in bytes
 def colorScale(r,g,b):
     return bytes([round(b*255),round(g*255),round(r*255)])

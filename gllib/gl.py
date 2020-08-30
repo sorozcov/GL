@@ -60,6 +60,7 @@ class Render(object):
         self.glAmbientLight()
         self.activeTexture= None
         self.activeTexture2= None
+        self.activeNormalMap= None
         self.activeShader=None
         self.createViewMatrix()
         self.createProjectionMatrix()
@@ -461,7 +462,7 @@ class Render(object):
         modelMatrix = self.createModelMatrix(translate, scale, rotation)
         rotationMatrix = self.createRotationMatrix(rotation)
         #For each face that has reference to v,vn,vt
-        indexFace = 0   
+        indexFace = 1   
         for face in objModel.faces:
         
             #if we dont want the painted model,just the wireframe
