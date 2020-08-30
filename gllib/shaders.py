@@ -391,7 +391,7 @@ def normalMapTexture(render,**kwargs):
         tangent = render.mathGl.normalizeVector(tangent)
 
         tangent = render.mathGl.subtractVector(tangent, render.mathGl.scalarMultiplicationVector(normal,render.mathGl.dotProductVector(tangent, normal)))
-        #tangent = np.subtract(tangent, np.multiply(np.dot(tangent, normal),normal))
+       
         tangent = render.mathGl.normalizeVector(tangent)
 
         bitangent = render.mathGl.crossVector(normal, tangent)

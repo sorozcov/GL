@@ -497,7 +497,7 @@ class Render(object):
                 vertex2 = self.transform(vertex2,modelMatrix)
                 #Printing each face progress for debugging and time testing
                 
-                print(str(objName)str(indexFace) + "/" + str(len(objModel.faces)))
+                print(str(objName)+" "+str(indexFace) + "/" + str(len(objModel.faces)))
                 indexFace=indexFace+1
                 if len(face) > 3: 
                     vertex3 = objModel.vertexIndexes[ face[3][0] - 1 ]
