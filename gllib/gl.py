@@ -10,7 +10,7 @@ import struct
 import os,sys
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 #We import our object class to gl.py
-from gllib.obj import Obj
+from gllib.obj import Obj,Texture
 from gllib.mathgl import MathGl
 from math import pi,cos,sin,tan
 import numpy as np
@@ -60,6 +60,7 @@ class Render(object):
         self.glAmbientLight()
         self.activeTexture= None
         self.activeTexture2= None
+        self.activeNormalMap= None
         self.activeShader=None
         self.createViewMatrix()
         self.createProjectionMatrix()
@@ -147,6 +148,24 @@ class Render(object):
         
         #All pixels x,y
         self.pixels= [[self.backgroundColor for x in range(self.width)] for y in range(self.height)]
+
+        #Zbuffer depth z
+        self.zbuffer = [ [ float('inf') for x in range(self.width)] for y in range(self.height) ]
+
+    #Clear with a background image to our scene
+    def glClearBackground(self,filenameBackground):
+        background = Texture(filenameBackground)
+        # self.backgroundColor = colorScale(r,g,b)
+        #Basically painting background
+        for x in range(self.width):
+            for y in range(self.height):
+                b,g,r=background.getTextureCoordinates(x/self.width,y/self.height)
+                self.pixels[x][y]=colorScale(r/255,g/255,b/255)
+        # Easier to use nested list comprenhension
+        #https://www.geeksforgeeks.org/nested-list-comprehensions-in-python/
+        
+        #All pixels x,y
+        # self.pixels= [[self.backgroundColor for x in range(self.width)] for y in range(self.height)]
 
         #Zbuffer depth z
         self.zbuffer = [ [ float('inf') for x in range(self.width)] for y in range(self.height) ]
@@ -443,6 +462,8 @@ class Render(object):
         modelMatrix = self.createModelMatrix(translate, scale, rotation)
         rotationMatrix = self.createRotationMatrix(rotation)
         #For each face that has reference to v,vn,vt
+        indexFace = 1   
+        objName=filename.split("/").pop()
         for face in objModel.faces:
         
             #if we dont want the painted model,just the wireframe
@@ -474,6 +495,10 @@ class Render(object):
                 vertex0 = self.transform(vertex0,modelMatrix)
                 vertex1 = self.transform(vertex1,modelMatrix)
                 vertex2 = self.transform(vertex2,modelMatrix)
+                #Printing each face progress for debugging and time testing
+                
+                print(str(objName)+" "+str(indexFace) + "/" + str(len(objModel.faces)))
+                indexFace=indexFace+1
                 if len(face) > 3: 
                     vertex3 = objModel.vertexIndexes[ face[3][0] - 1 ]
                     vertex3 = self.transform(vertex3,modelMatrix)

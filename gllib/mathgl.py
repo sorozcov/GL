@@ -81,6 +81,13 @@ class MathGl(object):
         return resultMatrix
 
     #Function to multiply matrix and vectors with matrix
+    def multiplyVector(self,vectorA,vectorB):
+        if(len(vectorA)!=len(vectorB)):
+            return False
+        vectorResult=[vectorA[i]*vectorB[i] for i in range(len(vectorA))]
+        return vectorResult
+        
+    #Function to multiply matrix and vectors with matrix
     def multiplyMatrix(self,matrixA,matrixB,returnVector=True,returnDotProduct=True):
 
         #We check if we are multiplying vectors
@@ -217,3 +224,8 @@ class MathGl(object):
                 for j in range(len(matrixA[0])):
                     matrixA[i][j]=matrixA[i][j]*scalar
         return matrixA
+
+    #Function to multiply matrix by scalar
+    def scalarMultiplicationVector(self,vectorA,scalar=1):
+        vectorResult = [vectorA[i]*scalar for i in range(len(vectorA))]
+        return vectorResult
